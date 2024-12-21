@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memorama</title>
+    <style>
+        body {
+            background-color: #F7DB73;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            height: 100vh;
+        }
+
+        .lives {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .lives span {
+            font-size: 2rem;
+            color: red;
+            margin: 0 5px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 80px);
+            grid-gap: 10px;
+        }
+
+        .card {
+            width: 80px;
+            height: 80px;
+            perspective: 1000px;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+        }
+
+        .card-inner.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-inner.match {
+            animation: matchEffect 0.5s ease-in-out;
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border: 2px solid black;
+            border-radius: 50%;
+        }
+
+        .card-front {
+            background-image: url('images/bg.png'); /* Default front image */
+            background-size: cover;
+            background-position: center;
+        }
+
+        .card-back {
+            background-size: cover;
+            background-position: center;
+            transform: rotateY(180deg);
+        }
+
+        @keyframes matchEffect {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="lives" id="lives">
+        <span>&hearts;</span>
+        <span>&hearts;</span>
+        <span>&hearts;</span>
+    </div>
+
+    <div class="grid" id="grid"></div>
+
+    <script>
+        const images = ["frida.png", "Chelado.png", "Chaw.png", "poli.png", "Mchoco.png", "Cnutella.png", "Wbanana.png", "Wnutella.png"];
+        const allImages = [...images, ...images]; // Duplicate images for pairs
+        
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        const shuffledImages = shuffle(allImages);
+        const grid = document.getElementById('grid');
+        const livesContainer = document.getElementById('lives');
+
+        shuffledImages.forEach((image, index) => {
+            const card = document.createElement('div');
+            card.classList.add('card');
+            card.innerHTML = `
+                <div class="card-inner" data-index="${index}" data-image="${image}" onclick="flipCard(this)">
+                    <div class="card-front"></div>
+                    <div class="card-back" style="background-image: url('images/${image}');"></div>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+
+        let flippedCards = [];
+
+        function flipCard(inner) {
+            if (inner.classList.contains('flipped') || flippedCards.length === 2) return;
+
+            inner.classList.add('flipped');
+            flippedCards.push(inner);
+
+            if (flippedCards.length === 2) {
+                const [first, second] = flippedCards;
+
+                if (first.dataset.image === second.dataset.image) {
+                    first.classList.add('match');
+                    second.classList.add('match');
+                    flippedCards = [];
+                } else {
+                    removeHeart();
+                    setTimeout(() => {
+                        first.classList.remove('flipped');
+                        second.classList.remove('flipped');
+                        flippedCards = [];
+                    }, 2500);
+                }
+            }
+        }
+
+        function removeHeart() {
+            const heart = livesContainer.querySelector('span');
+            if (heart) heart.remove();
+        }
+    </script>
+</body>
+</html>
